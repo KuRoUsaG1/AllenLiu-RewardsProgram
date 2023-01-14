@@ -1,9 +1,12 @@
-package com.example.rewards.service;
+package com.example.rewards.service.impl;
 
 import com.example.rewards.domain.entity.Customer;
 import com.example.rewards.domain.entity.CustomerRewards;
 import com.example.rewards.domain.entity.Transaction;
+import com.example.rewards.exception.ResourceNotFoundException;
 import com.example.rewards.repository.TransactionRepository;
+import com.example.rewards.service.RewardService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @Service //TODO: 处理 exception，log
-public class RewardServiceImpl implements RewardService{
+@Slf4j
+public class RewardServiceImpl implements RewardService {
     private final TransactionRepository transactionRepository;
     @Autowired
     public RewardServiceImpl(TransactionRepository transactionRepository) {
@@ -23,11 +28,19 @@ public class RewardServiceImpl implements RewardService{
 
     public List<CustomerRewards> calculateRewardsPerMonth(LocalDate startDate, LocalDate endDate) {
         // Retrieve all transactions between the given dates
-        List<Transaction> transactions = transactionRepository.findByDateBetween(startDate, endDate);
 
+        List<Transaction> transactions = transactionRepository.findByDateBetween(startDate, endDate);
+        if (transactions.isEmpty()) {
+            log.error("No resource found in repo");
+            throw new ResourceNotFoundException("No resource found in repo");
+        }
+        log.info("Transactions found in the date range");
+        Map<Customer, Map<String, Integer>> customerMap = groupTransactionsByCustomer(transactions);
+        return createCustomerRewards(customerMap);
+    }
+    private Map<Customer, Map<String, Integer>> groupTransactionsByCustomer(List<Transaction> transactions) {
         Map<String, Integer> rewardsPerMonth = new HashMap<>();
         Map<Customer, Map<String, Integer>> customerMap = new HashMap<>();
-
         for (Transaction transaction : transactions) {
             LocalDate date = transaction.getDate();
             String month = date.getMonth() + "-" + date.getYear();
@@ -43,7 +56,10 @@ public class RewardServiceImpl implements RewardService{
             rewardsPerMonth.put(month, earnedPoints);
             customerMap.put(customer, rewardsPerMonth);
         }
+        return customerMap;
+    }
 
+    private List<CustomerRewards> createCustomerRewards(Map<Customer, Map<String, Integer>> customerMap) {
         List<CustomerRewards> customerRewards = new ArrayList<>();
         for (Map.Entry<Customer, Map<String, Integer>> entry : customerMap.entrySet()) {
             Long customerId = entry.getKey().getId();
