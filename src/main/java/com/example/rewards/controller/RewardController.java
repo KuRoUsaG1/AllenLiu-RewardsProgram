@@ -27,37 +27,27 @@ public class RewardController {
                                                                           DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                                   @RequestParam("endDate") @DateTimeFormat(iso =
                                                                           DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        try {
-            if (startDate.isAfter(endDate)) {
-                log.error("Invalid date range, start date should be before end date");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-            List<CustomerRewards> rewards = rewardService.calculateRewardsPerMonth(startDate, endDate);
-            if (rewards.isEmpty()) {
-                log.error("No records found during the given date");
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            log.info("successfully return the information");
-            return new ResponseEntity<>(rewards, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Internal error: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        if (startDate.isAfter(endDate)) {
+            log.error("Invalid date range, start date should be before end date");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        List<CustomerRewards> rewards = rewardService.calculateRewardsPerMonth(startDate, endDate);
+        if (rewards.isEmpty()) {
+            log.error("No records found during the given date");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        log.info("successfully return the information");
+        return new ResponseEntity<>(rewards, HttpStatus.OK);
     }
 
     @GetMapping("/total-rewards-for-customer")
     public ResponseEntity<CustomerRewards> getTotalRewardsForCustomer(@RequestParam("customerId") Long customerId) {
-        try {
-            CustomerRewards customerRewards = rewardService.getTotalRewardsForCustomer(customerId);
-            if (customerRewards.getRewards() <= 0) {
-                log.error("No records found for the customer during the given date range");
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            log.info("Successfully return the total rewards for the customer");
-            return new ResponseEntity<>(customerRewards, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Internal error: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        CustomerRewards customerRewards = rewardService.getTotalRewardsForCustomer(customerId);
+        if (customerRewards.getRewards() <= 0) {
+            log.error("No records found for the customer during the given date range");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        log.info("Successfully return the total rewards for the customer");
+        return new ResponseEntity<>(customerRewards, HttpStatus.OK);
     }
 }
