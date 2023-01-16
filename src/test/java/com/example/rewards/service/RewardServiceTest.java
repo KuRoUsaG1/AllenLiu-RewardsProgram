@@ -51,9 +51,11 @@ public class RewardServiceTest {
 
         // Configure the mock repository to return the list of transactions when called
         when(transactionRepository.findByDateBetween(startDate, endDate)).thenReturn(transactions);
+        when(transactionRepository.findByCustomerId(1L)).thenReturn(transactions);
 
         // Call the method to be tested
         List<CustomerRewards> rewards = rewardService.calculateRewardsPerMonth(startDate, endDate);
+        CustomerRewards rewards1 = rewardService.getTotalRewardsForCustomer(1L);
 
         // Assert the results
         assertNotNull(rewards);
@@ -61,6 +63,7 @@ public class RewardServiceTest {
         System.out.println(rewards.get(0).getCustomerId() + " " + rewards.get(0).getMonth() + " " + rewards.get(0).getRewards());
         System.out.println(rewards.get(1).getCustomerId() + " " + rewards.get(1).getMonth() + " " + rewards.get(1).getRewards());
         System.out.println(rewards.get(2).getCustomerId() + " " + rewards.get(2).getMonth() + " " + rewards.get(2).getRewards());
+        System.out.println(rewards1.getCustomerId() + " " + rewards1.getRewards());
         // check the rewards is calculated correctly
     }
 

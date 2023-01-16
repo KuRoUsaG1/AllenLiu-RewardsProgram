@@ -72,5 +72,27 @@ public class RewardServiceImpl implements RewardService {
         }
         return customerRewards;
     }
+
+    public CustomerRewards getTotalRewardsForCustomer(Long customerId){
+        List<Transaction> transactions = transactionRepository.findByCustomerId(customerId);
+        if (transactions.isEmpty()) {
+            log.error("No transactions found for customer id : " + customerId);
+            throw new ResourceNotFoundException("No transactions found for customer id : " + customerId);
+        }
+        log.info("Transactions found in the date range");
+        CustomerRewards customerRewards = new CustomerRewards(customerId);
+        int totalRewards = 0;
+        for (Transaction transaction : transactions) {
+            int amount = (int) transaction.getAmount();
+            if (amount > 100) {
+                totalRewards += 2 * (amount - 100);
+                totalRewards += 50;
+            } else if (amount > 50) {
+                totalRewards += (amount - 50);
+            }
+        }
+        customerRewards.setRewards(totalRewards);
+        return customerRewards;
+    }
 }
 
