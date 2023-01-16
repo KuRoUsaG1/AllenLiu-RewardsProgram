@@ -1,4 +1,4 @@
-# Antra-AllenLiu-RewardsProgram
+# AllenLiu-RewardsProgram
 This is a rewards service application that calculates rewards points for customers based on their transactions, which includes two Restful endpoints and test cases
 built with Junit4.
 
