@@ -4,6 +4,7 @@ import com.example.rewards.domain.entity.CustomerRewards;
 import com.example.rewards.service.RewardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,16 +23,25 @@ public class RewardController {
         this.rewardService = rewardService;
     }
     @GetMapping("/calculate-rewards")
-    public ResponseEntity<List<CustomerRewards>> calculateRewards(@RequestParam("startDate") LocalDate startDate,
-                                                                  @RequestParam("endDate") LocalDate endDate) {
-        List<CustomerRewards> rewards = rewardService.calculateRewardsPerMonth(startDate, endDate);
-        if (rewards.isEmpty()) {
-            log.error("No records found in the given date");
-            return new ResponseEntity<>(rewards, HttpStatus.NOT_FOUND);
+    public ResponseEntity<List<CustomerRewards>> calculateRewards(@RequestParam("startDate") @DateTimeFormat(iso =
+                                                                          DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                                  @RequestParam("endDate") @DateTimeFormat(iso =
+                                                                          DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            if (startDate.isAfter(endDate)) {
+                log.error("Invalid date range, start date should be before end date");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            List<CustomerRewards> rewards = rewardService.calculateRewardsPerMonth(startDate, endDate);
+            if (rewards.isEmpty()) {
+                log.error("No records found during the given date");
+                return new ResponseEntity<>(rewards, HttpStatus.NOT_FOUND);
+            }
+            log.info("successfully return the information");
+            return new ResponseEntity<>(rewards, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Internal error: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        log.info("successfully return the information");
-        return new ResponseEntity<>(rewards, HttpStatus.OK);
     }
-
-    //TODO: handle global exception, internal error, resource not found, customized response check input range, type
 }

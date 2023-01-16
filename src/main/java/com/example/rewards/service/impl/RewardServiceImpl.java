@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@Service //TODO: 处理 exception，log
+@Service
 @Slf4j
 public class RewardServiceImpl implements RewardService {
     private final TransactionRepository transactionRepository;
