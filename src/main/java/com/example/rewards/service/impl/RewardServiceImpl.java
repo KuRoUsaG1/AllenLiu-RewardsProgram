@@ -45,14 +45,8 @@ public class RewardServiceImpl implements RewardService {
             LocalDate date = transaction.getDate();
             String month = date.getMonth() + "-" + date.getYear();
             Customer customer = transaction.getCustomer();
-            int amount = (int) transaction.getAmount();
             Integer earnedPoints = rewardsPerMonth.getOrDefault(month, 0);
-            if (amount > 100) {
-                earnedPoints += 2 * (amount - 100);
-                earnedPoints += 50;
-            } else if (amount > 50) {
-                earnedPoints += (amount - 50);
-            }
+            earnedPoints += calculateTransactionRewards(transaction);
             rewardsPerMonth.put(month, earnedPoints);
             customerMap.put(customer, rewardsPerMonth);
         }
@@ -83,16 +77,22 @@ public class RewardServiceImpl implements RewardService {
         CustomerRewards customerRewards = new CustomerRewards(customerId);
         int totalRewards = 0;
         for (Transaction transaction : transactions) {
-            int amount = (int) transaction.getAmount();
-            if (amount > 100) {
-                totalRewards += 2 * (amount - 100);
-                totalRewards += 50;
-            } else if (amount > 50) {
-                totalRewards += (amount - 50);
-            }
+            totalRewards += calculateTransactionRewards(transaction);
         }
         customerRewards.setRewards(totalRewards);
         return customerRewards;
+    }
+
+    private int calculateTransactionRewards(Transaction transaction) {
+        int amount = (int) transaction.getAmount();
+        int rewards = 0;
+        if (amount > 100) {
+            rewards += 2 * (amount - 100);
+            rewards += 50;
+        } else if (amount > 50) {
+            rewards += (amount - 50);
+        }
+        return rewards;
     }
 }
 
